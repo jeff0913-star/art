@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的 p5.js 互動藝術</title>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  
+  <style>
+    /* CSS 設定：確保 Canvas 充滿螢幕且無邊框 */
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden; /* 隱藏捲軸 */
+      background-color: #000;
+      width: 100vw;
+      height: 100vh;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  let particles = []; 
+
+  function setup() {
+    // 建立填滿視窗的畫布
+    createCanvas(windowWidth, windowHeight);
+    colorMode(HSB, 360, 100, 100, 100);
+    noStroke();
+    background(0);
+  }
+
+  function draw() {
+    // 拖尾效果
+    background(0, 0, 0, 10); 
+    
+    // 互動偵測：滑鼠移動產生粒子
+    if (mouseX !== pmouseX || mouseY !== pmouseY) {
+      for (let i = 0; i < 5; i++) {
+        particles.push(new Particle(mouseX, mouseY));
+      }
+    }
+
+    // 更新粒子
+    for (let i = particles.length - 1; i >= 0; i--) {
+      let p = particles[i];
+      p.update();
+      p.show();
+      if (p.finished()) {
+        particles.splice(i, 1);
+      }
+    }
+  }
+
+  // --- 關鍵：響應式設計 ---
+  // 當瀏覽器視窗大小改變時觸發
+  function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
+    background(0); // 重設背景避免破圖
+  }
+
+  // 粒子類別
+  class Particle {
+    constructor(x, y) {
+      this.pos = createVector(x, y);
+      this.vel = p5.Vector.random2D(); 
+      this.vel.mult(random(0.5, 3)); 
+      this.acc = createVector(0, 0); 
+      this.life = 255; 
+      this.hue = (frameCount * 2) % 360; 
+      this.size = random(5, 15);
+    }
+
+    update() {
+      this.vel.add(this.acc);
+      this.pos.add(this.vel);
+      this.life -= 4;
+      if (this.size > 0) this.size -= 0.1;
+    }
+
+    show() {
+      blendMode(ADD); 
+      fill(this.hue, 80, 80, this.life);
+      ellipse(this.pos.x, this.pos.y, this.size);
+      blendMode(BLEND);
+    }
+
+    finished() {
+      return this.life < 0;
+    }
+  }
+</script>
+
+</body>
+</html>
